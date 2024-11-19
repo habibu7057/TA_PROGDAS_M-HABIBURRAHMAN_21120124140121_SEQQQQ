@@ -1,0 +1,6 @@
+venv_lnx/
+venv_win/
+
+__pycache__/
+*.py[cod]
+*$py.class
