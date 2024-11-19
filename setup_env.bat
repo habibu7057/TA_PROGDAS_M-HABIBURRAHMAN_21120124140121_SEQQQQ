@@ -10,17 +10,25 @@ if not exist "requirements.txt" (
     exit /b 1
 )
 
-:: Check if Python 3 is installed
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo Error: Python is not installed or not in PATH.
+:: Determine the correct Python command
+set PYTHON_CMD=
+for %%P in (python py python3) do (
+    %%P --version >nul 2>&1
+    if not errorlevel 1 (
+        set PYTHON_CMD=%%P
+        goto :found
+    )
+)
+:found
+if "%PYTHON_CMD%"=="" (
+    echo Error: No Python interpreter found in PATH.
     exit /b 1
 )
 
 :: Create a virtual environment if it doesn't already exist
 if not exist "%VENV_DIR%" (
     echo Creating a virtual environment...
-    python -m venv "%VENV_DIR%"
+    %PYTHON_CMD% -m venv "%VENV_DIR%"
 ) else (
     echo Virtual environment already exists.
 )
@@ -38,10 +46,10 @@ echo Installing dependencies from requirements.txt...
 pip install -r requirements.txt
 
 :: Deactivate the virtual environment after setup
-echo
-echo "Setup complete. To activate the virtual environment, run:"
-echo "    %VENV_DIR%\Scripts\activate.bat"
-echo "And to run the project, run:"
-echo "    python3 main.py"
-echo
+echo Setup complete. To activate the virtual environment, run:
+echo     "%VENV_DIR%\Scripts\activate.bat"
+echo And to run the project, run:
+echo     "%PYTHON_CMD% main.py"
+echo Don't forget to deactivate the virtual environment when you're done:
+echo     "deactivate"
 endlocal
