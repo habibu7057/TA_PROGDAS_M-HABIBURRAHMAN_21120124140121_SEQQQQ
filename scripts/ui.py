@@ -105,7 +105,6 @@ class Label:
                     elif event.key == pygame.K_BACKSPACE:
                         self.dest_text = self.dest_text[0:-1]
                     elif pygame.key.name(event.key).isalnum() or event.key == K_SPACE:
-                        print(pygame.key.name(event.key))
                         if event.key != pygame.K_SPACE:
                             if not self.use_capital:
                                 self.dest_text += pygame.key.name(event.key)

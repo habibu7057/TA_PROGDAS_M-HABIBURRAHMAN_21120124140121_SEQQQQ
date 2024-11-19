@@ -1,4 +1,3 @@
-from numpy._core.defchararray import isnumeric
 import pygame
 import sys
 import math
