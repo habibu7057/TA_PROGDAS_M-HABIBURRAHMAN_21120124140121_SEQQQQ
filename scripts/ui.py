@@ -72,6 +72,30 @@ INACTIVE = 0
 PENDING = 1
 CONFIRM = 2
 
+TO_SHIFT = {
+    "1":"!",
+    "2":"@",
+    "3":"#",
+    "4":"$",
+    "5":"%",
+    "6":"^",
+    "7":"&",
+    "8":"*",
+    "9":"(",
+    "0":")",
+    "-":"_",
+    "=":"+",
+    "[":"{",
+    "]":"}",
+    ";":":",
+    ",":"<",
+    ".":">",
+    "/":"?",
+    "\\":"|",
+    "'":"\"",
+    "`":"~"
+}
+
 class Label:
     def __init__(self, text:str, x, y, font:pygame.Font, color:tuple[int, int, int], editable=False):
         self.text = text
@@ -84,7 +108,8 @@ class Label:
 
         self.text_surface = self.font.render(self.text, True, self.color)
 
-        self.use_capital = False
+        self.shift = False
+        self.caps = False
 
     def update(self, events):
         if self.get_rect().collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_just_pressed()[0] and self.is_editable:
@@ -99,22 +124,28 @@ class Label:
             for event in events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
-                        self.use_capital = True
+                        self.shift = True
                     elif event.key == pygame.K_RETURN:
                         self.state = CONFIRM
                     elif event.key == pygame.K_BACKSPACE:
                         self.dest_text = self.dest_text[0:-1]
-                    elif pygame.key.name(event.key).isalnum() or event.key == K_SPACE:
-                        if event.key != pygame.K_SPACE:
-                            if not self.use_capital:
-                                self.dest_text += pygame.key.name(event.key)
-                            else:
-                                self.dest_text += pygame.key.name(event.key).upper()
-                        elif event.key == pygame.K_SPACE:
-                            self.dest_text += " "
+                    elif event.key == pygame.K_CAPSLOCK:
+                        self.caps = not self.caps
+                    elif event.key == K_SPACE:
+                        self.dest_text += " "
+                    elif pygame.key.name(event.key).isalpha():
+                        if not self.shift ^ self.caps:
+                            self.dest_text += pygame.key.name(event.key)
+                        else:
+                            self.dest_text += pygame.key.name(event.key).upper()
+                    elif pygame.key.name(event.key) in "1234567890[];',./\\-=`":
+                        if not self.shift:
+                            self.dest_text += pygame.key.name(event.key)
+                        else:
+                            self.dest_text += TO_SHIFT[pygame.key.name(event.key)]
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
-                        self.use_capital = False
+                        self.shift = False
 
         if self.state == CONFIRM:
             if self.dest_text == "":

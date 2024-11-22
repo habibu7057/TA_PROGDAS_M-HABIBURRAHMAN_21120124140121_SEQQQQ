@@ -209,7 +209,6 @@ class Game:
             Track(""),
         ]
 
-
         self.ui_buttons: dict[str, Button] = {
             "toggle": Button(0, 0, 32, 32, "a"),
         }
@@ -218,8 +217,6 @@ class Game:
             self.ui_buttons[id].set_colors(self.active_button_clrs)
             self.ui_buttons[id].rect.x = i * 36 + 4
             self.ui_buttons[id].rect.y = seq_bottom + 4
-
-        self.tracks[0].set_sample("assets/samples/kick2.wav")
 
         self.last_beat = 0
 
@@ -400,7 +397,6 @@ class Game:
 
             for button in self.track_load_buttons:
                 button.draw(self.display, icon_font)
-
 
             for id, button in self.ui_buttons.items():
                 button.draw(self.display, icon_font_small)
