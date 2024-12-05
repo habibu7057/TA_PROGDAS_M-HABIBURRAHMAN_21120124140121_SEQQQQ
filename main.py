@@ -262,6 +262,9 @@ class Game:
         with open(filepath, "r") as file:
             data = json.loads(file.read())
 
+            self.song_info_field[0].text = str(data["bpm"])
+            self.song_info_field[1].text = str(data["div"])
+
             self.sequences = data["seq"]
             self.bpm = int(data["bpm"])
             self.division = int(data["div"])
