@@ -3,8 +3,9 @@ import sys
 import math
 import numpy as np
 import os
+import json
 
-from scripts.utils import h_col, prompt_file
+from scripts.utils import h_col, prompt_file, prompt_save
 from scripts.ui import Button, Label
 
 INACTIVE = 0
@@ -31,6 +32,7 @@ class Track:
             self.sample = pygame.sndarray.make_sound(np.zeros((2, 2), dtype=np.int16))
             self.sample_loaded = False
         self.sample.set_volume(0.5)
+        self.sample_directory = sample
 
         self.has_played = False
 
@@ -44,6 +46,7 @@ class Track:
         try:
             new_sample = pygame.mixer.Sound(filepath)
             self.sample = new_sample
+            self.sample_directory = filepath
         except pygame.error:
             print("unable to load sound! format invalid!")
             return
@@ -196,6 +199,12 @@ class Game:
             Label("Division", 60, seq_bottom + 18, default_font, (255,255,255))
         ]
 
+        self.save_button = Button(4, seq_bottom + 40, 64, 32, "Save")
+        self.save_button.set_color(INACTIVE, (200, 200, 200))
+
+        self.load_button = Button(72, seq_bottom + 40, 64, 32, "Load")
+        self.load_button.set_color(INACTIVE, (200, 200, 200))
+        
         self.is_editing = False
 
         self.tracks = [
@@ -208,6 +217,7 @@ class Game:
             Track(""),
             Track(""),
         ]
+
 
         self.ui_buttons: dict[str, Button] = {
             "toggle": Button(0, 0, 32, 32, "a"),
@@ -227,6 +237,43 @@ class Game:
 
         self.start_time = 0
         self.is_playing = 0
+
+    def save(self):
+        sample_dirs = []
+        track_names = []
+        for (i, track) in enumerate(self.tracks):
+            sample_dirs.append(track.sample_directory)
+            track_names.append(self.track_labels[i].text)
+
+        to_json = {
+            "seq": self.sequences,
+            "smp": sample_dirs,
+            "trk": track_names,
+            "bpm": self.bpm,
+            "div": self.division
+        }
+
+        the_json = json.dumps(to_json, indent=4)
+
+        print(to_json)
+        prompt_save(the_json)
+
+    def load(self, filepath):
+        with open(filepath, "r") as file:
+            data = json.loads(file.read())
+
+            self.sequences = data["seq"]
+            self.bpm = int(data["bpm"])
+            self.division = int(data["div"])
+
+            for i, track_label in enumerate(self.track_labels):
+                track_label.text = data["trk"][i]
+            
+            for i, track in enumerate(self.tracks):
+                if data["smp"][i] != "":
+                    track.set_sample(data["smp"][i])
+
+
 
 
     def run(self):
@@ -334,6 +381,17 @@ class Game:
                     if col == beat % 16 and self.sequences[row][col] == -1:
                         self.track_buttons[row][col].set_color(INACTIVE, (255,0,0))
 
+            self.save_button.update()
+
+            if self.save_button.state == RELEASED:
+                self.save()
+
+            self.load_button.update()
+
+            if self.load_button.state == RELEASED:
+                dir = prompt_file([("JSON", "*.json")], self.last_opened_dir)
+                self.load(dir)
+
             for (i, button) in enumerate(self.track_load_buttons):
                 button.update()
 
@@ -410,6 +468,9 @@ class Game:
             for label in self.song_info_label:
                 label.draw(self.display)
 
+            self.save_button.draw(self.display, default_font)
+            self.load_button.draw(self.display, default_font)
+            
             self.display.blit(self.header, (10, 10))
 
             # self.display.blit(preview_text, (2,2))

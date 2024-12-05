@@ -25,3 +25,23 @@ def prompt_file(ftype, dir="~"):
     file_name = tkinter.filedialog.askopenfilename(parent=top,filetypes=ftype,initialdir=dir)
     top.destroy()
     return file_name
+
+def prompt_save(data):
+    top = tkinter.Tk()
+    top.withdraw()  # hide window
+    top.update()
+
+    file = tkinter.filedialog.asksaveasfile(
+        parent=top,
+        initialfile="song.json",
+        mode="w",
+        defaultextension=".json",
+        filetypes=[("JSON file","*.json")]
+    )
+
+    if not file is None:
+        file.write(data)
+        file.close()
+
+
+
